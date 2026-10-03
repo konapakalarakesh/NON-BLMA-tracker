@@ -510,6 +510,11 @@ table.dt tr:hover{background:#e6f0ff}table.dt tr:nth-child(even){background:#f8f
 <button class="db gr" onclick="dlCSV('prio')" style="width:100%;justify-content:center;padding:12px;font-size:13px"><i class="fa-solid fa-download"></i> Priority Report</button>
 <button class="db" onclick="dlCSV('resolved')" style="width:100%;justify-content:center;padding:12px;font-size:13px;background:#172b4d"><i class="fa-solid fa-download"></i> Today's Resolved (needs both dumps)</button>
 <button class="db" onclick="dlCSV('new')" style="width:100%;justify-content:center;padding:12px;font-size:13px;background:var(--in)"><i class="fa-solid fa-download"></i> Today's New Tickets (needs both dumps)</button>
+<hr style="border:none;border-top:2px solid var(--bd);margin:16px 0">
+<p style="font-size:12px;font-weight:600;color:var(--tx);margin-bottom:8px"><i class="fa-solid fa-shield-halved" style="color:var(--p)"></i> ADMIN — Push Data to GitHub</p>
+<p style="font-size:11px;color:var(--ts);margin-bottom:10px">Export your uploaded data as JSON files. Push these to your GitHub repo so everyone sees your data by default.</p>
+<button class="db" onclick="exportAdmin('morning')" style="width:100%;justify-content:center;padding:12px;font-size:13px;background:#172b4d"><i class="fa-solid fa-sun"></i> Export morning.json (for GitHub)</button>
+<button class="db" onclick="exportAdmin('evening')" style="width:100%;justify-content:center;padding:12px;font-size:13px;background:#172b4d;margin-top:8px"><i class="fa-solid fa-moon"></i> Export evening.json (for GitHub)</button>
 </div></div>
 <div class="pn"><div class="ph"><div class="pt"><i class="fa-solid fa-info-circle"></i> Quick Guide</div></div>
 <div style="font-size:13px;line-height:1.8;color:var(--ts)">
@@ -785,9 +790,42 @@ document.getElementById('f2').addEventListener('change',function(e){
 // TABS
 document.querySelectorAll('.T').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.T').forEach(function(x){x.classList.remove('a')});document.querySelectorAll('.tp').forEach(function(x){x.classList.remove('a')});b.classList.add('a');document.getElementById('p-'+b.dataset.t).classList.add('a');setTimeout(function(){Highcharts.charts.forEach(function(c){if(c)c.reflow()})},120)})});
 
-// INIT
+// ADMIN EXPORT
+function exportAdmin(type){
+  var data=type==='morning'?MORN:EVE;
+  if(!data.length){alert('No '+type+' data loaded. Upload a CSV first.');return;}
+  var json=JSON.stringify(data);
+  var blob=new Blob([json],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=type+'.json';a.click();
+}
+
+// INIT — Auto-load admin data if available
 renderHist();
-document.getElementById('kpis').innerHTML='<div class="k b" style="grid-column:1/-1;text-align:center"><div class="kl"><i class="fa-solid fa-cloud-arrow-up"></i> Getting Started</div><div class="kv" style="font-size:16px;font-family:var(--fn)">Upload Morning & Evening SIM-T dumps above to load the dashboard</div></div>';
+
+function autoLoad(){
+  var loaded=0;
+  fetch('./morning.json').then(function(r){if(!r.ok)throw'no file';return r.json()}).then(function(d){
+    MORN=d;loaded++;
+    document.getElementById('ub1').classList.add('loaded');
+    document.getElementById('uf1').textContent='✅ Admin morning data ('+MORN.length+' tickets)';
+    renderAll(MORN,'Admin morning data');
+    document.getElementById('um').innerHTML='<b style="color:var(--sc)">Morning: '+MORN.length+'</b><br>Loading evening...';
+    return fetch('./evening.json');
+  }).then(function(r){if(!r.ok)throw'no file';return r.json()}).then(function(d){
+    EVE=d;loaded++;
+    document.getElementById('ub2').classList.add('loaded');
+    document.getElementById('uf2').textContent='✅ Admin evening data ('+EVE.length+' tickets)';
+    renderAll(EVE,'Admin evening data');
+    renderCmp();
+    document.getElementById('um').innerHTML='<b style="color:var(--sc)">Morning: '+MORN.length+'</b><br><b style="color:var(--sc)">Evening: '+EVE.length+'</b><br><span style="font-size:10px;color:var(--tm)">Admin data auto-loaded</span>';
+    try{var sp=document.getElementById('pi').value;if(sp&&sp.trim())loadPrio()}catch(ex){}
+  }).catch(function(e){
+    if(!loaded){
+      document.getElementById('kpis').innerHTML='<div class="k b" style="grid-column:1/-1;text-align:center"><div class="kl"><i class="fa-solid fa-cloud-arrow-up"></i> Getting Started</div><div class="kv" style="font-size:16px;font-family:var(--fn)">Upload Morning & Evening SIM-T dumps above to load the dashboard</div><div class="ks2" style="margin-top:8px">Or ask your admin (Rakesh) to push data to the repo</div></div>';
+    }
+  });
+}
+autoLoad();
 </script>
 
 
