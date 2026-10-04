@@ -350,867 +350,392 @@ body { background: var(--color-bg); color: var(--color-text); }
 a { color: var(--color-link, var(--color-primary)); }</style>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Non-BLMA Barcode Suppression Tracker</title>
+<title>Non-BLMA Barcode Suppressions — Live Tracker</title>
 <script src="https://cdn.jsdelivr.net/npm/highcharts@12.1.2/highcharts.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/highcharts@12.1.2/modules/exporting.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/highcharts@12.1.2/modules/export-data.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/highcharts@12.1.2/modules/accessibility.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f1923;color:#e0e6ed;min-height:100vh}
-.header{background:linear-gradient(135deg,#1a2940 0%,#0d1b2a 100%);padding:16px 24px;border-bottom:1px solid #1e3a5f;display:flex;align-items:center;justify-content:space-between}
-.header h1{font-size:18px;font-weight:600;color:#e0e6ed}
-.header h1 span{color:#4fc3f7;font-weight:700}
-.header-right{display:flex;align-items:center;gap:12px}
-.header-badge{background:#1e3a5f;padding:4px 10px;border-radius:12px;font-size:11px;color:#8ab4f8}
-.upload-strip{background:#131f2e;padding:10px 24px;border-bottom:1px solid #1e3a5f;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.upload-box{display:flex;align-items:center;gap:8px}
-.upload-box label{font-size:12px;color:#8899a6;font-weight:500}
-.upload-box input[type=file]{display:none}
-.upload-btn{background:#1e3a5f;color:#4fc3f7;border:1px dashed #2d5a8e;padding:5px 12px;border-radius:6px;font-size:11px;cursor:pointer;transition:all .2s}
-.upload-btn:hover{background:#2d5a8e;border-color:#4fc3f7}
-.upload-btn.loaded{background:#1a3a2a;color:#4ade80;border-color:#22c55e;border-style:solid}
-.upload-status{font-size:11px;color:#6b7b8d}
-.tab-bar{display:flex;background:#131f2e;border-bottom:1px solid #1e3a5f;padding:0 24px;gap:0}
-.tab{padding:10px 18px;font-size:13px;color:#6b7b8d;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;font-weight:500}
-.tab:hover{color:#8ab4f8}
-.tab.active{color:#4fc3f7;border-bottom-color:#4fc3f7}
-.tab.admin-tab{margin-left:auto;color:#4a5568;font-size:12px}
-.tab.admin-tab.active{color:#8899a6;border-bottom-color:#4a5568}
-.content{padding:20px 24px;max-width:1400px;margin:0 auto}
-.tab-content{display:none}
-.tab-content.active{display:block}
-.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px}
-.kpi{background:#1a2940;border:1px solid #1e3a5f;border-radius:10px;padding:16px;text-align:center}
-.kpi-value{font-size:28px;font-weight:700;color:#e0e6ed}
-.kpi-value.green{color:#4ade80}.kpi-value.red{color:#f87171}.kpi-value.blue{color:#4fc3f7}.kpi-value.yellow{color:#fbbf24}.kpi-value.orange{color:#fb923c}
-.kpi-label{font-size:11px;color:#6b7b8d;margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
-.kpi-sub{font-size:10px;color:#4a5568;margin-top:2px}
-.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
-.chart-box{background:#1a2940;border:1px solid #1e3a5f;border-radius:10px;padding:16px;min-height:280px}
-.chart-box.full{grid-column:1/-1}
-.section-title{font-size:14px;font-weight:600;color:#8ab4f8;margin-bottom:16px;display:flex;align-items:center;gap:8px}
-.section-title span{font-size:16px}
-table{width:100%;border-collapse:collapse;font-size:12px}
-th{background:#1e3a5f;color:#8ab4f8;padding:8px 10px;text-align:left;font-weight:600;position:sticky;top:0;cursor:pointer}
-th:hover{background:#2d5a8e}
-td{padding:7px 10px;border-bottom:1px solid #152238;color:#c0cad8}
-tr:hover td{background:#1a2940}
-.table-wrap{max-height:400px;overflow-y:auto;border:1px solid #1e3a5f;border-radius:8px;margin-top:8px}
-.sev3{color:#f87171;font-weight:600}.sev4{color:#fbbf24}.sev5{color:#4ade80}
-.status-wip{color:#4fc3f7}.status-assigned{color:#fbbf24}.status-pending{color:#fb923c}
-a{color:#4fc3f7;text-decoration:none}a:hover{text-decoration:underline}
-.filter-row{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
-.filter-row select,.filter-row input{background:#1a2940;border:1px solid #1e3a5f;color:#e0e6ed;padding:5px 10px;border-radius:6px;font-size:12px}
-.btn{background:#1e3a5f;color:#4fc3f7;border:1px solid #2d5a8e;padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;transition:all .2s}
-.btn:hover{background:#2d5a8e}
-.btn-primary{background:#1d4ed8;color:#fff;border-color:#2563eb}
-.btn-primary:hover{background:#2563eb}
-.btn-green{background:#166534;color:#4ade80;border-color:#22c55e}
-.priority-input{width:100%;background:#1a2940;border:1px solid #1e3a5f;color:#e0e6ed;padding:10px;border-radius:8px;font-size:12px;font-family:monospace;min-height:60px;resize:vertical}
-.empty-state{text-align:center;padding:60px 20px;color:#4a5568}
-.empty-state .icon{font-size:48px;margin-bottom:12px}
-.empty-state p{font-size:14px}
-.admin-section{background:#131f2e;border:1px solid #1e3a5f;border-radius:10px;padding:20px;margin-bottom:16px}
-.admin-section h3{font-size:13px;color:#6b7b8d;margin-bottom:12px}
-.change-arrow{color:#fb923c;font-weight:700}
-.dl-btn{display:inline-block;margin:4px}
-.count-badge{display:inline-block;background:#1e3a5f;color:#4fc3f7;padding:2px 8px;border-radius:10px;font-size:11px;margin-left:6px}
-@media(max-width:768px){.chart-grid{grid-template-columns:1fr}.kpi-row{grid-template-columns:repeat(2,1fr)}}
+:root{--bg:#fff;--bg2:#f7f8fa;--bg3:#f0f2f5;--surface:#fff;--surface2:#f9fafb;--text:#1a1d23;--text2:#44546f;--text3:#8993a4;--border:#e2e5e9;--border-light:#eef0f3;--primary:#0052CC;--primary-dark:#003d99;--primary-light:#deebff;--primary-bg:#e6f0ff;--success:#00875a;--success-bg:#e3fcef;--error:#de350b;--error-bg:#ffebe6;--warning:#ff991f;--warning-bg:#fffae6;--purple:#6554c0;--purple-bg:#eae6ff;--teal:#00b8d9;--teal-bg:#e6fcff;--font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;--mono:'SF Mono',Consolas,monospace;--radius:10px;--radius-sm:6px;--shadow:0 1px 3px rgba(0,0,0,.05);--shadow-md:0 4px 12px rgba(0,0,0,.08)}
+.dark{--bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--surface:#161b22;--surface2:#1c2128;--text:#e6edf3;--text2:#8b949e;--text3:#6e7681;--border:#30363d;--border-light:#21262d;--primary:#58a6ff;--primary-dark:#79c0ff;--primary-light:#0d2240;--primary-bg:#0d2240;--success:#3fb950;--success-bg:#0d2818;--error:#f85149;--error-bg:#2d1214;--warning:#d29922;--warning-bg:#2d2006;--purple:#bc8cff;--purple-bg:#201d35;--teal:#56d4e8;--shadow:0 1px 3px rgba(0,0,0,.3);--shadow-md:0 4px 12px rgba(0,0,0,.4)}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:var(--font);background:var(--bg);color:var(--text);transition:background .3s,color .3s}
+.hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.hdr-left{display:flex;align-items:center;gap:12px}
+.hdr-logo{width:36px;height:36px;background:var(--primary);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px}
+.hdr h1{font-size:17px;font-weight:700;letter-spacing:-.3px}
+.hdr-meta{display:flex;gap:12px;margin-top:2px;font-size:11px;color:var(--text3)}.hdr-meta span{display:flex;align-items:center;gap:4px}
+.hdr-right{display:flex;align-items:center;gap:10px}
+.date-sel{background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:var(--radius-sm);font-size:12px;font-family:var(--font);cursor:pointer}
+.live-dot{width:7px;height:7px;background:var(--success);border-radius:50%;display:inline-block;margin-right:4px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.badge{background:var(--bg2);color:var(--text2);padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;display:flex;align-items:center;gap:4px}
+.theme-btn{background:none;border:1px solid var(--border);color:var(--text2);width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}.theme-btn:hover{background:var(--bg2);color:var(--text)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;padding:16px 24px}
+.kpi{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);transition:transform .15s,box-shadow .15s}.kpi:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.kpi-lbl{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:5px;margin-bottom:6px;font-weight:500}
+.kpi-val{font-size:24px;font-weight:800;font-family:var(--mono);line-height:1.1}
+.kpi-sub{font-size:10px;color:var(--text3);margin-top:3px}
+.kpi.blue .kpi-val{color:var(--primary)}.kpi.red .kpi-val{color:var(--error)}.kpi.green .kpi-val{color:var(--success)}.kpi.orange .kpi-val{color:var(--warning)}.kpi.purple .kpi-val{color:var(--purple)}.kpi.teal .kpi-val{color:var(--teal)}
+.tabs{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;gap:0;overflow-x:auto}
+.tab-btn{background:none;border:none;padding:10px 14px;font-size:12px;font-weight:500;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;display:flex;align-items:center;gap:6px;white-space:nowrap;font-family:var(--font);transition:all .2s}.tab-btn:hover{color:var(--text2)}.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary)}
+.tab-btn .cnt{background:var(--primary-bg);color:var(--primary);padding:1px 6px;border-radius:10px;font-size:10px;font-weight:700}
+.tab-btn.admin{margin-left:auto;opacity:.55}.tab-btn.admin.active{opacity:1}
+.content{max-width:1380px;margin:0 auto;padding:16px 24px}.tab-pane{display:none}.tab-pane.active{display:block}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.panel{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:14px}
+.panel-hdr{padding:12px 16px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between}
+.panel-ttl{font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;color:var(--text)}.panel-ttl i{color:var(--text3);font-size:12px}
+.tbl-wrap{overflow:auto;max-height:450px}
+table.dt{width:100%;border-collapse:collapse;font-size:11.5px}
+table.dt th{background:var(--bg2);color:var(--text2);padding:8px 10px;text-align:left;font-weight:600;position:sticky;top:0;z-index:1;border-bottom:1px solid var(--border);white-space:nowrap}
+table.dt td{padding:6px 10px;border-bottom:1px solid var(--border-light);color:var(--text)}
+table.dt tr:hover td{background:var(--surface2)}
+a{color:var(--primary);text-decoration:none}a:hover{text-decoration:underline}
+.sev3{background:var(--error-bg);color:var(--error);padding:1px 7px;border-radius:4px;font-size:10px;font-weight:700}
+.sev4{background:var(--warning-bg);color:#b47a00;padding:1px 7px;border-radius:4px;font-size:10px;font-weight:700}
+.sev5{background:var(--primary-bg);color:var(--primary);padding:1px 7px;border-radius:4px;font-size:10px;font-weight:700}
+.st-a{background:var(--error-bg);color:var(--error);padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600}
+.st-w{background:var(--warning-bg);color:#b47a00;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600}
+.st-p{background:var(--purple-bg);color:var(--purple);padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:var(--radius-sm);font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text);transition:all .15s;font-family:var(--font)}.btn:hover{background:var(--bg2)}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}.btn-primary:hover{opacity:.9}
+.btn-green{background:var(--success);color:#fff;border-color:var(--success)}
+.btn-sm{padding:4px 10px;font-size:11px}
+.filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fsel{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:var(--radius-sm);font-size:11px;font-family:var(--font)}
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:24px;text-align:center;cursor:pointer;transition:all .2s}.upload-zone:hover{border-color:var(--primary);background:var(--primary-light)}.upload-zone.loaded{border-color:var(--success);border-style:solid;background:var(--success-bg)}
+.upload-zone i{font-size:24px;color:var(--text3);display:block;margin-bottom:8px}.upload-zone p{font-size:12px;color:var(--text3)}
+.admin-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:14px}
+.admin-card h3{font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.admin-card p{font-size:12px;color:var(--text3);margin-bottom:12px}
+.step-n{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;font-size:11px;font-weight:700;align-items:center;justify-content:center}
+.hist-item{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border-light)}.hist-item:last-child{border-bottom:none}
+.empty-st{text-align:center;padding:50px 20px;color:var(--text3)}.empty-st i{font-size:36px;display:block;margin-bottom:10px;opacity:.5}
+@media(max-width:768px){.g2{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
-
-<div class="header">
-  <h1>📦 <span>Non-BLMA</span> Barcode Suppression Tracker</h1>
-  <div class="header-right">
-    <div class="header-badge" id="dataStatus">No data loaded</div>
-    <div class="header-badge" id="lastUpdated"></div>
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-logo"><i class="fa-solid fa-barcode"></i></div>
+    <div>
+      <h1>Non-BLMA Barcode Suppressions — Live Tracker</h1>
+      <div class="hdr-meta">
+        <span><i class="fa-solid fa-layer-group"></i> GCO Team</span>
+        <span><i class="fa-solid fa-database"></i> SIM-T Data</span>
+        <span><i class="fa-solid fa-calendar-day"></i> <b id="data-date">—</b></span>
+      </div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <select class="date-sel" id="dateSelect" onchange="loadDate(this.value)"><option value="">Select date...</option></select>
+    <div class="badge"><span class="live-dot"></span><span id="ticketBadge">—</span></div>
+    <button class="theme-btn" onclick="toggleTheme()" id="themeBtn" title="Toggle theme"><i class="fa-solid fa-moon"></i></button>
   </div>
 </div>
-
-<div class="upload-strip">
-  <div class="upload-box">
-    <label>☀️ Morning:</label>
-    <label class="upload-btn" id="morningBtn" for="morningFile">Choose CSV</label>
-    <input type="file" id="morningFile" accept=".csv" onchange="handleUpload('morning',this)">
-    <span class="upload-status" id="morningStatus"></span>
-  </div>
-  <div class="upload-box">
-    <label>🌙 Evening:</label>
-    <label class="upload-btn" id="eveningBtn" for="eveningFile">Choose CSV</label>
-    <input type="file" id="eveningFile" accept=".csv" onchange="handleUpload('evening',this)">
-    <span class="upload-status" id="eveningStatus"></span>
-  </div>
-  <div style="margin-left:auto;display:flex;gap:8px">
-    <button class="btn" onclick="loadSampleData()" title="Load embedded sample data for preview">Demo</button>
-  </div>
-</div>
-
-<div class="tab-bar">
-  <div class="tab active" onclick="switchTab('overview')">📊 Overview</div>
-  <div class="tab" onclick="switchTab('wip')">🔧 WIP Tracker</div>
-  <div class="tab" onclick="switchTab('action')">🔴 WIP → Assigned</div>
-  <div class="tab" onclick="switchTab('priority')">⭐ Priority</div>
-  <div class="tab admin-tab" onclick="switchTab('admin')">⚙️ Admin</div>
-</div>
-
-<div class="content">
-
-  <!-- ==================== OVERVIEW TAB ==================== -->
-  <div id="tab-overview" class="tab-content active">
-    <div id="overviewEmpty" class="empty-state">
-      <div class="icon">📊</div>
-      <p>Upload morning &amp; evening CSV dumps to see insights</p>
-    </div>
-    <div id="overviewContent" style="display:none">
-      <div class="kpi-row" id="overviewKPIs"></div>
-      <div class="chart-grid">
-        <div class="chart-box" id="chartStatus"></div>
-        <div class="chart-box" id="chartSeverity"></div>
-        <div class="chart-box" id="chartAge"></div>
-        <div class="chart-box" id="chartWeekly"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ==================== WIP TAB ==================== -->
-  <div id="tab-wip" class="tab-content">
-    <div id="wipEmpty" class="empty-state">
-      <div class="icon">🔧</div>
-      <p>Upload both dumps to see WIP analysis</p>
-    </div>
-    <div id="wipContent" style="display:none">
-      <div class="kpi-row" id="wipKPIs"></div>
-      <div class="chart-grid">
-        <div class="chart-box" id="chartWipAge"></div>
-        <div class="chart-box" id="chartWipSev"></div>
-      </div>
-      <div class="section-title"><span>🔧</span> WIP Tickets <span class="count-badge" id="wipCount"></span></div>
-      <div class="filter-row">
-        <select id="wipSevFilter" onchange="renderWipTable()"><option value="">All Severities</option><option value="3">Sev 3</option><option value="4">Sev 4</option><option value="5">Sev 5</option></select>
-        <input type="text" id="wipSearch" placeholder="Search title, ID..." oninput="renderWipTable()">
-        <button class="btn" onclick="downloadTable('wipTable','wip_tickets.csv')">📥 Download CSV</button>
-      </div>
-      <div class="table-wrap"><table id="wipTable"></table></div>
-    </div>
-  </div>
-
-  <!-- ==================== WIP→ASSIGNED TAB ==================== -->
-  <div id="tab-action" class="tab-content">
-    <div id="actionEmpty" class="empty-state">
-      <div class="icon">🔴</div>
-      <p>Upload both dumps to find WIP → Assigned tickets</p>
-    </div>
-    <div id="actionContent" style="display:none">
-      <div class="kpi-row" id="actionKPIs"></div>
-      <div class="section-title"><span>🔴</span> WIP → Assigned — These Need Direct Closure <span class="count-badge" id="actionCount"></span></div>
-      <p style="font-size:12px;color:#6b7b8d;margin-bottom:12px">These tickets were in WIP (morning) but moved back to Assigned (evening). They likely need to be closed directly.</p>
-      <button class="btn" onclick="downloadTable('actionTable','wip_to_assigned.csv')" style="margin-bottom:8px">📥 Download List</button>
-      <div class="table-wrap"><table id="actionTable"></table></div>
-    </div>
-  </div>
-
-  <!-- ==================== PRIORITY TAB ==================== -->
-  <div id="tab-priority" class="tab-content">
-    <div id="priorityContent">
-      <div class="section-title"><span>⭐</span> Priority Ticket Tracker</div>
-      <p style="font-size:12px;color:#6b7b8d;margin-bottom:10px">Paste ticket IDs (TT IDs like V1234567890, P1234567890 etc.) — one per line or comma/space separated. Works with evening dump data (or morning if no evening loaded).</p>
-      <textarea class="priority-input" id="priorityInput" placeholder="Paste TT IDs here...
-V1234567890
-P9876543210
-..."></textarea>
-      <div style="margin-top:8px;display:flex;gap:8px">
-        <button class="btn-primary btn" onclick="matchPriority()">🔍 Match Priority Tickets</button>
-        <button class="btn" onclick="clearPriority()">Clear</button>
-      </div>
-      <div id="priorityResults" style="margin-top:16px"></div>
-    </div>
-  </div>
-
-  <!-- ==================== ADMIN TAB ==================== -->
-  <div id="tab-admin" class="tab-content">
-    <div class="admin-section">
-      <h3>📤 Export JSON for GitHub</h3>
-      <p style="font-size:12px;color:#6b7b8d;margin-bottom:12px">Export a single <code>data.json</code> containing morning dump, evening dump, comparison analysis, and priority list. Push this to your GitHub repo so everyone can see the dashboard without uploading CSVs.</p>
-      <button class="btn-primary btn" onclick="exportGitHubJSON()">📦 Export data.json</button>
-      <span id="exportStatus" style="font-size:11px;color:#4a5568;margin-left:8px"></span>
-    </div>
-    <div class="admin-section">
-      <h3>📥 Individual Upload (Your Session Only)</h3>
-      <p style="font-size:12px;color:#6b7b8d;margin-bottom:8px">These uploads only affect your browser. Others visiting the GitHub page won't see them unless you export and push to GitHub.</p>
-    </div>
-    <div class="admin-section">
-      <h3>📋 Download Reports</h3>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
-        <button class="btn dl-btn" onclick="downloadReport('full')">Full Queue</button>
-        <button class="btn dl-btn" onclick="downloadReport('wip')">WIP Only</button>
-        <button class="btn dl-btn" onclick="downloadReport('assigned')">Assigned Only</button>
-        <button class="btn dl-btn" onclick="downloadReport('resolved')">Resolved Today</button>
-        <button class="btn dl-btn" onclick="downloadReport('new')">New Today</button>
-        <button class="btn dl-btn" onclick="downloadReport('wip_to_assigned')">WIP→Assigned</button>
-        <button class="btn dl-btn" onclick="downloadReport('priority')">Priority</button>
-      </div>
-    </div>
-  </div>
-
-</div>
+<div class="kpis" id="kpis"></div>
+<div class="tabs" id="tabBar"></div>
+<div class="content" id="mainContent"></div>
 
 <script>
-var morningData = null;
-var eveningData = null;
-var comparison = null;
-var priorityIds = [];
-var priorityMatched = [];
+var D=null,ALL_TICKETS=[],PRI_IDS=[],PRI_MATCHED=[],RAW_START=null,RAW_END=null,HISTORY=[];
+try{HISTORY=JSON.parse(localStorage.getItem('nonblma_hist')||'[]')}catch(e){HISTORY=[]}
 
-// ===================== CSV PARSER =====================
-function parseCSV(text) {
-  var lines = text.split('\n');
-  var headers = parseCSVLine(lines[0]);
-  var rows = [];
-  for (var i = 1; i < lines.length; i++) {
-    if (!lines[i].trim()) continue;
-    var vals = parseCSVLine(lines[i]);
-    var obj = {};
-    for (var j = 0; j < headers.length; j++) {
-      obj[headers[j]] = (vals[j] || '').trim();
-    }
-    rows.push(obj);
-  }
-  return rows;
+var EMBEDDED={"date":"2026-10-01","total":3045,"morning_total":3295,"resolved":824,"new_count":574,"net":-250,"resolved_wip":165,"resolved_assigned":574,"wip_to_assigned_count":15,"assigned_to_wip_count":56,"by_status":{"Assigned":1728,"Work In Progress":1316,"Pending":1},"by_severity":{"5":2030,"3":946,"4":69},"m_status":{"Assigned":1770,"Work In Progress":1440,"Researching":85},"age_buckets":{"0-3d":557,"4-7d":673,"8-14d":735,"15-30d":481,"30+d":599},"weekly_inflow":{"07/27":16,"08/03":14,"08/10":305,"08/17":83,"08/24":86,"08/31":151,"09/07":220,"09/14":219,"09/21":790,"09/28":1160},"daily_inflow":{"2026-09-21":32,"2026-09-22":51,"2026-09-23":67,"2026-09-24":85,"2026-09-25":106,"2026-09-26":95,"2026-09-27":82,"2026-09-28":130,"2026-09-29":122,"2026-09-30":174,"2026-10-01":242,"2026-10-02":260,"2026-10-03":264,"2026-10-04":258},"wip_count":1316,"wip_avg_age":31.0,"wip_ages":{"0-3d":0,"4-7d":2,"8-14d":263,"15-30d":465,"30+d":586},"wip_severity":{"5":861,"3":419,"4":36},"w2a_count":15,"w2a_list":[{"ShortId":"V2351392301","Severity":"5","Status":"Assigned","Age":"31","Title":"TroubleShooting Robot - Incorrect Barcode Suppression Request","CreateDate":"2026-09-03"},{"ShortId":"V2368402361","Severity":"5","Status":"Assigned","Age":"19","Title":"TroubleShooting Robot - Incorrect Barcode Suppression Request","CreateDate":"2026-09-15"},{"ShortId":"V2331959832","Severity":"5","Status":"Assigned","Age":"46","Title":"TroubleShooting Robot - Incorrect Barcode Suppression Request","CreateDate":"2026-08-19"},{"ShortId":"V2322967675","Severity":"3","Status":"Assigned","Age":"53","Title":"TroubleShooting Robot - Incorrect Barcode Suppression Request","CreateDate":"2026-08-12"},{"ShortId":"V2351946486","Severity":"5","Status":"Assigned","Age":"31","Title":"TroubleShooting Robot - Incorrect Barcode Suppression Request","CreateDate":"2026-09-03"}]};
+
+function initTheme(){var t='light';try{t=localStorage.getItem('nonblma-theme')||'light'}catch(e){}applyTheme(t)}
+function toggleTheme(){applyTheme(document.body.classList.contains('dark')?'light':'dark')}
+function applyTheme(t){
+  if(t==='dark'){document.body.classList.add('dark');document.getElementById('themeBtn').innerHTML='<i class="fa-solid fa-sun"></i>'}
+  else{document.body.classList.remove('dark');document.getElementById('themeBtn').innerHTML='<i class="fa-solid fa-moon"></i>'}
+  try{localStorage.setItem('nonblma-theme',t)}catch(e){}
+  if(D)renderAll();
+}
+function hcTheme(){
+  var s=getComputedStyle(document.documentElement);
+  var g=function(v){return s.getPropertyValue(v).trim()};
+  return{bg:'transparent',text:g('--text'),text2:g('--text2'),text3:g('--text3'),border:g('--border-light'),surface:g('--surface')};
+}
+function hcBase(){
+  var c=hcTheme();
+  return{chart:{backgroundColor:c.bg,style:{fontFamily:'-apple-system,sans-serif'}},title:{text:''},credits:{enabled:false},accessibility:{enabled:false},
+    exporting:{enabled:true,buttons:{contextButton:{symbolStroke:c.text3,theme:{fill:'transparent'}}}},
+    tooltip:{backgroundColor:c.surface,borderColor:c.border,style:{color:c.text}},
+    xAxis:{labels:{style:{color:c.text2,fontSize:'11px'}},lineColor:c.border,tickColor:c.border},
+    yAxis:{labels:{style:{color:c.text2,fontSize:'11px'}},gridLineColor:c.border,title:{style:{color:c.text3}}},
+    legend:{itemStyle:{color:c.text2,fontSize:'11px'}},plotOptions:{series:{borderRadius:4}}};
 }
 
-function parseCSVLine(line) {
-  var result = [];
-  var current = '';
-  var inQuotes = false;
-  for (var i = 0; i < line.length; i++) {
-    var ch = line[i];
-    if (inQuotes) {
-      if (ch === '"') {
-        if (i + 1 < line.length && line[i + 1] === '"') {
-          current += '"';
-          i++;
-        } else {
-          inQuotes = false;
-        }
-      } else {
-        current += ch;
-      }
-    } else {
-      if (ch === '"') {
-        inQuotes = true;
-      } else if (ch === ',') {
-        result.push(current);
-        current = '';
-      } else {
-        current += ch;
-      }
-    }
-  }
-  result.push(current);
-  return result;
-}
-
-// ===================== FILE UPLOAD =====================
-function handleUpload(type, input) {
-  var file = input.files[0];
-  if (!file) return;
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    var rows = parseCSV(e.target.result);
-    if (type === 'morning') {
-      morningData = rows;
-      document.getElementById('morningBtn').className = 'upload-btn loaded';
-      document.getElementById('morningBtn').textContent = '✓ ' + file.name;
-      document.getElementById('morningStatus').textContent = rows.length + ' tickets';
-    } else {
-      eveningData = rows;
-      document.getElementById('eveningBtn').className = 'upload-btn loaded';
-      document.getElementById('eveningBtn').textContent = '✓ ' + file.name;
-      document.getElementById('eveningStatus').textContent = rows.length + ' tickets';
-    }
-    if (morningData && eveningData) {
-      runComparison();
-      renderAll();
-    } else if (morningData || eveningData) {
-      renderSingleDump();
-    }
-    updateDataStatus();
-  };
-  reader.readAsText(file);
-}
-
-// ===================== AUTO-LOAD FROM GITHUB =====================
-function tryAutoLoad() {
-  var loaded = 0;
-  fetch('./data.json').then(function(r) {
-    if (!r.ok) throw new Error('no file');
-    return r.json();
-  }).then(function(data) {
-    if (data.morning && data.morning.length) {
-      morningData = data.morning;
-      document.getElementById('morningBtn').className = 'upload-btn loaded';
-      document.getElementById('morningBtn').textContent = '✓ Admin Data';
-      document.getElementById('morningStatus').textContent = morningData.length + ' tickets';
-    }
-    if (data.evening && data.evening.length) {
-      eveningData = data.evening;
-      document.getElementById('eveningBtn').className = 'upload-btn loaded';
-      document.getElementById('eveningBtn').textContent = '✓ Admin Data';
-      document.getElementById('eveningStatus').textContent = eveningData.length + ' tickets';
-    }
-    if (data.priorityIds && data.priorityIds.length) {
-      priorityIds = data.priorityIds;
-      document.getElementById('priorityInput').value = priorityIds.join('\n');
-    }
-    if (data.timestamp) {
-      document.getElementById('lastUpdated').textContent = 'Data: ' + data.timestamp;
-    }
-    if (morningData && eveningData) {
-      runComparison();
-      renderAll();
-      if (priorityIds.length) matchPriority();
-    } else if (morningData || eveningData) {
-      renderSingleDump();
-    }
-    updateDataStatus();
-  }).catch(function() {});
-}
-
-// ===================== COMPARISON ENGINE =====================
-function runComparison() {
-  var mMap = {};
-  var eMap = {};
-  for (var i = 0; i < morningData.length; i++) {
-    mMap[morningData[i].IssueId] = morningData[i];
-  }
-  for (var i = 0; i < eveningData.length; i++) {
-    eMap[eveningData[i].IssueId] = eveningData[i];
-  }
-
-  var resolved = [];
-  var newTickets = [];
-  var statusChanges = [];
-  var wipToAssigned = [];
-
-  // Resolved = in morning but not in evening
-  for (var id in mMap) {
-    if (!eMap[id]) {
-      resolved.push(mMap[id]);
-    }
-  }
-  // New = in evening but not in morning
-  for (var id in eMap) {
-    if (!mMap[id]) {
-      newTickets.push(eMap[id]);
-    }
-  }
-  // Status changes
-  for (var id in eMap) {
-    if (mMap[id] && mMap[id].Status !== eMap[id].Status) {
-      var change = {
-        ticket: eMap[id],
-        fromStatus: mMap[id].Status,
-        toStatus: eMap[id].Status
-      };
-      statusChanges.push(change);
-      if (mMap[id].Status === 'Work In Progress' && eMap[id].Status === 'Assigned') {
-        wipToAssigned.push(change);
-      }
-    }
-  }
-
-  // Count resolved by original status
-  var resolvedWIP = 0;
-  var resolvedAssigned = 0;
-  var resolvedOther = 0;
-  for (var i = 0; i < resolved.length; i++) {
-    var s = resolved[i].Status;
-    if (s === 'Work In Progress') resolvedWIP++;
-    else if (s === 'Assigned') resolvedAssigned++;
-    else resolvedOther++;
-  }
-
-  comparison = {
-    resolved: resolved,
-    newTickets: newTickets,
-    statusChanges: statusChanges,
-    wipToAssigned: wipToAssigned,
-    resolvedWIP: resolvedWIP,
-    resolvedAssigned: resolvedAssigned,
-    resolvedOther: resolvedOther
-  };
-}
-
-// ===================== RENDER ALL =====================
-function renderAll() {
-  renderOverview();
-  renderWip();
-  renderAction();
-}
-
-function renderSingleDump() {
-  var data = eveningData || morningData;
-  if (!data) return;
-  // Show overview with single dump
-  renderOverviewSingle(data);
-}
-
-function updateDataStatus() {
-  var parts = [];
-  if (morningData) parts.push('☀️ ' + morningData.length);
-  if (eveningData) parts.push('🌙 ' + eveningData.length);
-  document.getElementById('dataStatus').textContent = parts.length ? parts.join(' | ') : 'No data loaded';
-}
-
-// ===================== OVERVIEW TAB =====================
-function renderOverview() {
-  document.getElementById('overviewEmpty').style.display = 'none';
-  document.getElementById('overviewContent').style.display = 'block';
-
-  var mTotal = morningData.length;
-  var eTotal = eveningData.length;
-  var net = eTotal - mTotal;
-
-  // Status counts
-  var mStatus = countBy(morningData, 'Status');
-  var eStatus = countBy(eveningData, 'Status');
-  var eSev = countBy(eveningData, 'Severity');
-
-  var kpiHTML = '';
-  kpiHTML += kpi(eTotal, 'Total Open', '', net < 0 ? 'green' : 'red');
-  kpiHTML += kpi(comparison.resolved.length, 'Resolved Today', '', 'green');
-  kpiHTML += kpi(comparison.newTickets.length, 'New Today', '', 'orange');
-  kpiHTML += kpi((net < 0 ? '' : '+') + net, 'Net Change', net < 0 ? '↓ Queue shrinking' : '↑ Queue growing', net < 0 ? 'green' : 'red');
-  kpiHTML += kpi(comparison.resolvedWIP, 'WIP Resolved', 'From Work In Progress', 'blue');
-  kpiHTML += kpi(comparison.wipToAssigned.length, 'WIP → Assigned', 'Need direct closure', 'red');
-  document.getElementById('overviewKPIs').innerHTML = kpiHTML;
-
-  // Status comparison chart
-  Highcharts.chart('chartStatus', {
-    chart: { type: 'bar', backgroundColor: 'transparent', height: 260 },
-    title: { text: 'Status: Morning vs Evening', style: { color: '#8ab4f8', fontSize: '13px' } },
-    xAxis: { categories: ['Assigned', 'WIP', 'Pending', 'Researching'], labels: { style: { color: '#8899a6' } } },
-    yAxis: { title: { text: '' }, labels: { style: { color: '#8899a6' } }, gridLineColor: '#1e3a5f' },
-    legend: { itemStyle: { color: '#8899a6' } },
-    series: [
-      { name: 'Morning', data: [mStatus['Assigned']||0, mStatus['Work In Progress']||0, mStatus['Pending']||0, mStatus['Researching']||0], color: '#fbbf24' },
-      { name: 'Evening', data: [eStatus['Assigned']||0, eStatus['Work In Progress']||0, eStatus['Pending']||0, eStatus['Researching']||0], color: '#4fc3f7' }
-    ],
-    credits: { enabled: false }
+function buildUI(){
+  var tabs=[
+    {id:'overview',icon:'fa-chart-line',label:'Overview'},
+    {id:'wip',icon:'fa-wrench',label:'WIP Tracker',cnt:'wipCnt'},
+    {id:'action',icon:'fa-triangle-exclamation',label:'WIP \u2192 Assigned',cnt:'actCnt'},
+    {id:'tickets',icon:'fa-table-list',label:'All Tickets',cnt:'tCnt'},
+    {id:'priority',icon:'fa-fire',label:'Priority',cnt:'pCnt'},
+    {id:'weekly',icon:'fa-calendar-week',label:'Weekly Analysis'},
+    {id:'admin',icon:'fa-gear',label:'Admin',admin:true}
+  ];
+  var tabHTML='';
+  tabs.forEach(function(t,i){
+    tabHTML+='<button class="tab-btn'+(i===0?' active':'')+(t.admin?' admin':'')+'" data-t="'+t.id+'"><i class="fa-solid '+t.icon+'"></i> '+t.label+(t.cnt?' <span class="cnt" id="'+t.cnt+'">0</span>':'')+'</button>';
   });
+  document.getElementById('tabBar').innerHTML=tabHTML;
 
-  // Severity pie
-  var sevData = [];
-  for (var s in eSev) { sevData.push({ name: 'Sev ' + s, y: eSev[s] }); }
-  sevData.sort(function(a,b){ return a.name > b.name ? 1 : -1; });
-  Highcharts.chart('chartSeverity', {
-    chart: { type: 'pie', backgroundColor: 'transparent', height: 260 },
-    title: { text: 'Severity Breakdown (Evening)', style: { color: '#8ab4f8', fontSize: '13px' } },
-    plotOptions: { pie: { dataLabels: { format: '{point.name}: {point.y}', style: { color: '#c0cad8', fontSize: '11px', textOutline: 'none' } }, colors: ['#f87171', '#fbbf24', '#4ade80'] } },
-    series: [{ data: sevData }],
-    credits: { enabled: false }
-  });
+  var c=document.getElementById('mainContent');
+  c.innerHTML=
+    '<div class="tab-pane active" id="p-overview"><div class="g2"><div class="panel"><div class="panel-hdr"><div class="panel-ttl"><i class="fa-solid fa-chart-pie"></i> Status Distribution</div></div><div id="c-status" style="height:300px"></div></div><div class="panel"><div class="panel-hdr"><div class="panel-ttl"><i class="fa-solid fa-bolt"></i> Severity Breakdown</div></div><div id="c-severity" style="height:300px"></div></div></div><div class="g2"><div class="panel"><div class="panel-hdr"><div class="panel-ttl"><i class="fa-solid fa-hourglass-half"></i> Ticket Age Distribution</div></div><div id="c-age" style="height:300px"></div></div><div class="panel"><div class="panel-hdr"><div class="panel-ttl"><i class="fa-solid fa-chart-area"></i> Weekly Ticket Inflow</div></div><div id="c-weekly" style="height:300px"></div></div></div><div class="panel"><div class="panel-hdr"><div class="panel-ttl"><i class="fa-solid fa-chart-bar"></i> Daily Inflow (Last 14 Days)</div></div><div id="c-daily" style="height:280px"></div></div></div>'+
+    '<div class="tab-pane" id="p-wip"><div class="kpis" id="wipKpis" style="padding:0 0 14px 0"></div><div class="g2"><div class="panel"><div class="panel-hdr"><div class="panel-ttl"><i class="fa-solid fa-hourglass"></i> WIP Age</div></div><div id="c-wip-age" style="height:280px"></div></div><div class="panel"><div class="panel-hdr"><div class="panel-ttl"><i class="fa-solid fa-bolt"></i> WIP Severity</div></div><div id="c-wip-sev" style="height:280px"></div></div></div><div class="panel"><div class="panel-hdr"><div class="panel-ttl"><i class="fa-solid fa-list"></i> WIP Tickets (<span id="wipGridCnt">0</span>)</div><div class="filters"><select class="fsel" id="wf-sev" onchange="filterWip()"><option value="">All Sev</option><option value="3">Sev 3</option><option value="4">Sev 4</option><option value="5">Sev 5</option></select><input class="fsel" id="wf-search" placeholder="Search..." oninput="filterWip()" style="width:140px"><button class="btn btn-sm" onclick="dlWip()"><i class="fa-solid fa-download"></i> CSV</button></div></div><div class="tbl-wrap" id="wip-table"></div></div></div>'+
+    '<div class="tab-pane" id="p-action"><div class="kpis" id="actKpis" style="padding:0 0 14px 0"></div><div class="panel"><div class="panel-hdr"><div class="panel-ttl"><i class="fa-solid fa-triangle-exclamation"></i> WIP \u2192 Assigned \u2014 Need Direct Closure</div><button class="btn btn-sm" onclick="dlW2A()"><i class="fa-solid fa-download"></i> CSV</button></div><p style="font-size:12px;color:var(--text3);padding:10px 16px 0">These tickets were in WIP at start of day but moved back to Assigned by end of day. Review and close directly.</p><div class="tbl-wrap" id="act-table"></div></div></div>'+
+    '<div class="tab-pane" id="p-tickets"><div class="panel"><div class="panel-hdr"><div class="panel-ttl"><i class="fa-solid fa-table-list"></i> Full Queue (<span id="gridCnt">0</span>)</div><div class="filters"><select class="fsel" id="tf-status" onchange="filterAll()"><option value="">All Status</option></select><select class="fsel" id="tf-sev" onchange="filterAll()"><option value="">All Sev</option><option value="3">Sev 3</option><option value="4">Sev 4</option><option value="5">Sev 5</option></select><select class="fsel" id="tf-age" onchange="filterAll()"><option value="">All Ages</option><option value="0-3">0-3d</option><option value="4-7">4-7d</option><option value="8-14">8-14d</option><option value="15-30">15-30d</option><option value="30+">30+d</option></select><button class="btn btn-sm btn-green" onclick="dlAll()"><i class="fa-solid fa-download"></i> CSV</button></div></div><div class="tbl-wrap" id="all-table"></div></div></div>'+
+    '<div class="tab-pane" id="p-priority"><div class="panel" style="margin-bottom:14px"><div class="panel-hdr"><div class="panel-ttl"><i class="fa-solid fa-fire"></i> Priority Ticket IDs</div></div><div style="padding:14px 16px"><p style="font-size:12px;color:var(--text3);margin-bottom:10px">Paste ticket IDs from managers. Dashboard matches them and shows live status.</p><textarea id="priInput" rows="3" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:12px;resize:vertical;background:var(--bg2);color:var(--text)" placeholder="V2388848618\nP495357445"></textarea><div style="margin-top:10px;display:flex;gap:8px"><button class="btn btn-primary" onclick="loadPriority()"><i class="fa-solid fa-magnifying-glass"></i> Find &amp; Track</button><button class="btn btn-green" onclick="dlPri()"><i class="fa-solid fa-download"></i> Priority Report</button></div></div></div><div class="kpis" id="priKpis" style="padding:0 0 14px 0"></div><div class="g2"><div class="panel"><div class="panel-hdr"><div class="panel-ttl"><i class="fa-solid fa-chart-pie"></i> Priority Status</div></div><div id="c-pri-status" style="height:280px"></div></div><div class="panel"><div class="panel-hdr"><div class="panel-ttl"><i class="fa-solid fa-hourglass"></i> Priority Age</div></div><div id="c-pri-age" style="height:280px"></div></div></div><div class="panel"><div class="panel-hdr"><div class="panel-ttl"><i class="fa-solid fa-table"></i> Priority Details</div></div><div class="tbl-wrap" id="pri-table"></div><div id="pri-warn" style="padding:0 16px 10px"></div></div></div>'+
+    '<div class="tab-pane" id="p-weekly"><div class="panel"><div class="panel-hdr"><div class="panel-ttl"><i class="fa-solid fa-calendar-week"></i> Week-over-Week Trend</div></div><div id="c-wow" style="height:320px"></div></div><div class="panel"><div class="panel-hdr"><div class="panel-ttl"><i class="fa-solid fa-clock-rotate-left"></i> Historical Snapshots</div></div><p style="font-size:12px;color:var(--text3);padding:10px 16px 0">Each day you upload, a snapshot is saved here.</p><div id="hist-list" style="padding:10px 16px"></div></div></div>'+
+    '<div class="tab-pane" id="p-admin"><div class="admin-card"><h3><span class="step-n">1</span> Upload Today\'s Data</h3><p>Upload start-of-day and end-of-day SIM-T CSV exports.</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div class="upload-zone" id="uz1" onclick="document.getElementById(\'f1\').click()"><i class="fa-solid fa-sun"></i><p><b>Start of Day CSV</b></p><input type="file" id="f1" accept=".csv" style="display:none" onchange="handleUpload(\'start\',this)"></div><div class="upload-zone" id="uz2" onclick="document.getElementById(\'f2\').click()"><i class="fa-solid fa-moon"></i><p><b>End of Day CSV</b></p><input type="file" id="f2" accept=".csv" style="display:none" onchange="handleUpload(\'end\',this)"></div></div><div id="uploadMsg" style="font-size:12px;color:var(--text3);margin-top:8px"></div></div><div class="admin-card"><h3><span class="step-n">2</span> Priority TTs (optional)</h3><p>Paste priority IDs in the Priority tab first. They get included in the export.</p></div><div class="admin-card"><h3><span class="step-n">3</span> Export for GitHub</h3><p>Downloads a date-stamped JSON for your data/ folder.</p><button class="btn btn-primary" id="exportBtn" onclick="exportJSON()" disabled><i class="fa-solid fa-file-export"></i> Export data.json</button><span id="exportMsg" style="font-size:11px;color:var(--text3);margin-left:8px"></span></div><div class="admin-card"><h3><i class="fa-solid fa-folder-tree" style="color:var(--text3)"></i> GitHub Structure</h3><pre style="background:var(--bg2);padding:12px;border-radius:var(--radius-sm);font-size:12px;color:var(--text2);font-family:var(--mono);margin-top:8px">NON-BLMA-tracker/\n\u251C\u2500\u2500 index.html\n\u251C\u2500\u2500 data/\n\u2502   \u251C\u2500\u2500 manifest.json\n\u2502   \u251C\u2500\u2500 2026-10-04.json\n\u2502   \u2514\u2500\u2500 ...</pre></div><div class="admin-card"><h3><i class="fa-solid fa-download" style="color:var(--text3)"></i> Quick Reports</h3><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px" id="reportBtns"></div></div></div>';
 
-  // Age distribution
-  var ages = eveningData.map(function(t) { return parseInt(t.Age) || 0; });
-  var ageBuckets = [0, 0, 0, 0, 0];
-  for (var i = 0; i < ages.length; i++) {
-    var a = ages[i];
-    if (a <= 3) ageBuckets[0]++;
-    else if (a <= 7) ageBuckets[1]++;
-    else if (a <= 14) ageBuckets[2]++;
-    else if (a <= 30) ageBuckets[3]++;
-    else ageBuckets[4]++;
-  }
-  Highcharts.chart('chartAge', {
-    chart: { type: 'column', backgroundColor: 'transparent', height: 260 },
-    title: { text: 'Age Distribution (Evening)', style: { color: '#8ab4f8', fontSize: '13px' } },
-    xAxis: { categories: ['0-3d', '4-7d', '8-14d', '15-30d', '30+d'], labels: { style: { color: '#8899a6' } } },
-    yAxis: { title: { text: '' }, labels: { style: { color: '#8899a6' } }, gridLineColor: '#1e3a5f' },
-    legend: { enabled: false },
-    series: [{ data: ageBuckets, color: '#4fc3f7', borderRadius: 4 }],
-    credits: { enabled: false }
-  });
+  document.getElementById('reportBtns').innerHTML='<button class="btn btn-sm" onclick="dlAll()">Full Queue</button><button class="btn btn-sm" onclick="dlWip()">WIP</button><button class="btn btn-sm" onclick="dlAssigned()">Assigned</button><button class="btn btn-sm" onclick="dlResolved()">Resolved</button><button class="btn btn-sm" onclick="dlNew()">New Today</button><button class="btn btn-sm" onclick="dlW2A()">WIP\u2192Assigned</button><button class="btn btn-sm" onclick="dlPri()">Priority</button>';
 
-  // Weekly inflow
-  var weekMap = {};
-  var allData = eveningData;
-  for (var i = 0; i < allData.length; i++) {
-    var d = allData[i].CreateDate;
-    if (!d) continue;
-    var dt = new Date(d);
-    var weekStart = new Date(dt);
-    weekStart.setDate(dt.getDate() - dt.getDay());
-    var key = weekStart.toISOString().slice(0, 10);
-    weekMap[key] = (weekMap[key] || 0) + 1;
-  }
-  var weekKeys = Object.keys(weekMap).sort().slice(-10);
-  var weekVals = weekKeys.map(function(k) { return weekMap[k]; });
-  var weekLabels = weekKeys.map(function(k) { return k.slice(5); });
-  Highcharts.chart('chartWeekly', {
-    chart: { type: 'area', backgroundColor: 'transparent', height: 260 },
-    title: { text: 'Weekly Inflow (by creation date)', style: { color: '#8ab4f8', fontSize: '13px' } },
-    xAxis: { categories: weekLabels, labels: { style: { color: '#8899a6' } } },
-    yAxis: { title: { text: '' }, labels: { style: { color: '#8899a6' } }, gridLineColor: '#1e3a5f' },
-    legend: { enabled: false },
-    plotOptions: { area: { fillColor: { linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 }, stops: [[0, 'rgba(79,195,247,0.3)'], [1, 'rgba(79,195,247,0.02)']] }, lineColor: '#4fc3f7', marker: { fillColor: '#4fc3f7', lineColor: '#4fc3f7' } } },
-    series: [{ data: weekVals }],
-    credits: { enabled: false }
+  document.querySelectorAll('.tab-btn').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active')});
+      document.querySelectorAll('.tab-pane').forEach(function(p){p.classList.remove('active')});
+      btn.classList.add('active');
+      document.getElementById('p-'+btn.dataset.t).classList.add('active');
+      setTimeout(function(){Highcharts.charts.forEach(function(ch){if(ch)ch.reflow()})},120);
+    });
   });
 }
 
-function renderOverviewSingle(data) {
-  document.getElementById('overviewEmpty').style.display = 'none';
-  document.getElementById('overviewContent').style.display = 'block';
-  var st = countBy(data, 'Status');
-  var sv = countBy(data, 'Severity');
-  var kpiHTML = '';
-  kpiHTML += kpi(data.length, 'Total Open', '', 'blue');
-  kpiHTML += kpi(st['Assigned'] || 0, 'Assigned', '', 'yellow');
-  kpiHTML += kpi(st['Work In Progress'] || 0, 'WIP', '', 'blue');
-  kpiHTML += kpi(sv['3'] || 0, 'Sev 3', '', 'red');
-  kpiHTML += kpi(sv['5'] || 0, 'Sev 5', '', 'green');
-  document.getElementById('overviewKPIs').innerHTML = kpiHTML;
+function renderAll(){
+  if(!D)return;
+  document.getElementById('data-date').textContent=D.date||'\u2014';
+  document.getElementById('ticketBadge').textContent=(D.total||0).toLocaleString()+' tickets';
+  try{document.getElementById('tCnt').textContent=D.total||ALL_TICKETS.length||0}catch(e){}
+  try{document.getElementById('wipCnt').textContent=D.wip_count||0}catch(e){}
+  try{document.getElementById('actCnt').textContent=D.w2a_count||(D.w2a_list||[]).length||0}catch(e){}
+  renderKPIs();renderOverview();renderWipTab();renderActionTab();renderAllTickets();renderWeekly();renderHistory();
 }
 
-// ===================== WIP TAB =====================
-function renderWip() {
-  if (!comparison) return;
-  document.getElementById('wipEmpty').style.display = 'none';
-  document.getElementById('wipContent').style.display = 'block';
-
-  var eWip = eveningData.filter(function(t) { return t.Status === 'Work In Progress'; });
-  var mWip = morningData.filter(function(t) { return t.Status === 'Work In Progress'; });
-
-  var avgAge = 0;
-  if (eWip.length) {
-    var sum = 0;
-    for (var i = 0; i < eWip.length; i++) sum += parseInt(eWip[i].Age) || 0;
-    avgAge = (sum / eWip.length).toFixed(1);
-  }
-
-  var newToWip = 0;
-  for (var i = 0; i < comparison.statusChanges.length; i++) {
-    if (comparison.statusChanges[i].toStatus === 'Work In Progress') newToWip++;
-  }
-
-  var kpiHTML = '';
-  kpiHTML += kpi(eWip.length, 'WIP Tickets', 'Evening count', 'blue');
-  kpiHTML += kpi(mWip.length, 'WIP Morning', 'Start of day', 'yellow');
-  kpiHTML += kpi(comparison.resolvedWIP, 'WIP Resolved', 'Closed today', 'green');
-  kpiHTML += kpi(newToWip, 'Moved to WIP', 'Assigned → WIP today', 'orange');
-  kpiHTML += kpi(avgAge + 'd', 'Avg WIP Age', '', 'blue');
-  document.getElementById('wipKPIs').innerHTML = kpiHTML;
-  document.getElementById('wipCount').textContent = eWip.length;
-
-  // WIP age chart
-  var wipAges = [0, 0, 0, 0, 0];
-  for (var i = 0; i < eWip.length; i++) {
-    var a = parseInt(eWip[i].Age) || 0;
-    if (a <= 3) wipAges[0]++;
-    else if (a <= 7) wipAges[1]++;
-    else if (a <= 14) wipAges[2]++;
-    else if (a <= 30) wipAges[3]++;
-    else wipAges[4]++;
-  }
-  Highcharts.chart('chartWipAge', {
-    chart: { type: 'column', backgroundColor: 'transparent', height: 260 },
-    title: { text: 'WIP Age Distribution', style: { color: '#8ab4f8', fontSize: '13px' } },
-    xAxis: { categories: ['0-3d', '4-7d', '8-14d', '15-30d', '30+d'], labels: { style: { color: '#8899a6' } } },
-    yAxis: { title: { text: '' }, labels: { style: { color: '#8899a6' } }, gridLineColor: '#1e3a5f' },
-    legend: { enabled: false },
-    series: [{ data: wipAges, color: '#4fc3f7', borderRadius: 4 }],
-    credits: { enabled: false }
-  });
-
-  // WIP by severity
-  var wipSev = countBy(eWip, 'Severity');
-  var sevData = [];
-  for (var s in wipSev) { sevData.push({ name: 'Sev ' + s, y: wipSev[s] }); }
-  Highcharts.chart('chartWipSev', {
-    chart: { type: 'pie', backgroundColor: 'transparent', height: 260 },
-    title: { text: 'WIP by Severity', style: { color: '#8ab4f8', fontSize: '13px' } },
-    plotOptions: { pie: { dataLabels: { format: '{point.name}: {point.y}', style: { color: '#c0cad8', fontSize: '11px', textOutline: 'none' } }, colors: ['#f87171', '#fbbf24', '#4ade80'] } },
-    series: [{ data: sevData }],
-    credits: { enabled: false }
-  });
-
-  renderWipTable();
+function renderKPIs(){
+  var total=D.total||0,bs=D.by_status||{},sv=D.by_severity||{};
+  var assigned=bs['Assigned']||0,wip=bs['Work In Progress']||0,sev3=sv['3']||0;
+  var net=D.net||0;
+  var kpis=[
+    {l:'Total Open',v:total,s:'Current queue',c:'blue',ic:'fa-ticket'},
+    {l:'Resolved Today',v:D.resolved||0,s:'Closed this day',c:'green',ic:'fa-check-circle'},
+    {l:'New Today',v:D.new_count||0,s:'Created this day',c:'orange',ic:'fa-plus-circle'},
+    {l:'Net Change',v:(net>0?'+':'')+net,s:net<0?'Queue shrinking \u2193':'Queue growing \u2191',c:net<=0?'green':'red',ic:net<=0?'fa-arrow-trend-down':'fa-arrow-trend-up'},
+    {l:'Sev 3 (High)',v:sev3,s:total?Math.round(sev3/total*100)+'% of total':'',c:'red',ic:'fa-bolt'},
+    {l:'WIP \u2192 Assigned',v:D.w2a_count||(D.w2a_list||[]).length||0,s:'Need direct closure',c:'purple',ic:'fa-triangle-exclamation'}
+  ];
+  document.getElementById('kpis').innerHTML=kpis.map(function(k){
+    return '<div class="kpi '+k.c+'"><div class="kpi-lbl"><i class="fa-solid '+k.ic+'"></i> '+k.l+'</div><div class="kpi-val">'+(typeof k.v==='number'?k.v.toLocaleString():k.v)+'</div><div class="kpi-sub">'+k.s+'</div></div>';
+  }).join('');
 }
 
-function renderWipTable() {
-  if (!eveningData) return;
-  var eWip = eveningData.filter(function(t) { return t.Status === 'Work In Progress'; });
-  var sev = document.getElementById('wipSevFilter').value;
-  var search = (document.getElementById('wipSearch').value || '').toLowerCase();
-  if (sev) eWip = eWip.filter(function(t) { return String(t.Severity) === sev; });
-  if (search) eWip = eWip.filter(function(t) { return (t.Title || '').toLowerCase().indexOf(search) >= 0 || (t.ShortId || '').toLowerCase().indexOf(search) >= 0 || (t.IssueId || '').toLowerCase().indexOf(search) >= 0; });
-  eWip.sort(function(a, b) { return (parseInt(b.Age) || 0) - (parseInt(a.Age) || 0); });
-
-  var html = '<thead><tr><th>ID</th><th>Sev</th><th>Age</th><th>Title</th><th>Created</th></tr></thead><tbody>';
-  for (var i = 0; i < eWip.length; i++) {
-    var t = eWip[i];
-    html += '<tr><td><a href="' + (t.IssueUrl || 'https://t.corp.amazon.com/' + t.ShortId) + '" target="_blank">' + (t.ShortId || t.IssueId) + '</a></td>';
-    html += '<td class="sev' + t.Severity + '">Sev ' + t.Severity + '</td>';
-    html += '<td>' + (t.Age || '?') + 'd</td>';
-    html += '<td>' + truncate(t.Title, 80) + '</td>';
-    html += '<td>' + formatDate(t.CreateDate) + '</td></tr>';
-  }
-  html += '</tbody>';
-  document.getElementById('wipTable').innerHTML = html;
+function renderOverview(){
+  var base=hcBase();var c=hcTheme();
+  var sc={'Assigned':'#de350b','Work In Progress':'#ff991f','Pending':'#6554c0','Researching':'#00b8d9'};
+  var bs=D.by_status||{};
+  Highcharts.chart('c-status',Highcharts.merge(base,{chart:{type:'pie'},plotOptions:{pie:{innerSize:'55%',dataLabels:{format:'<b>{point.name}</b>: {point.y}',style:{fontSize:'11px',textOutline:'none',color:c.text2}},showInLegend:true}},series:[{name:'Tickets',data:Object.keys(bs).map(function(k){return{name:k,y:bs[k],color:sc[k]||'#999'}})}]}));
+  var sevc={'3':'#de350b','4':'#ff991f','5':'#0065ff'};var sv=D.by_severity||{};
+  Highcharts.chart('c-severity',Highcharts.merge(base,{chart:{type:'pie'},plotOptions:{pie:{innerSize:'55%',dataLabels:{format:'<b>Sev {point.name}</b>: {point.y}',style:{fontSize:'11px',textOutline:'none',color:c.text2}},showInLegend:true}},series:[{name:'Tickets',data:Object.keys(sv).sort().map(function(k){return{name:k,y:sv[k],color:sevc[k]||'#999'}})}]}));
+  var ac=['#36b37e','#00b8d9','#ff991f','#ff5630','#de350b'];var ab=D.age_buckets||{};
+  Highcharts.chart('c-age',Highcharts.merge(base,{chart:{type:'column'},xAxis:{categories:Object.keys(ab)},yAxis:{title:{text:'Tickets'}},plotOptions:{column:{dataLabels:{enabled:true,style:{fontWeight:'600',fontSize:'11px',color:c.text2}}}},legend:{enabled:false},series:[{name:'Tickets',data:Object.values(ab).map(function(v,i){return{y:v,color:ac[i]||'#999'}})}]}));
+  var wi=D.weekly_inflow||{};var wK=Object.keys(wi).sort();
+  Highcharts.chart('c-weekly',Highcharts.merge(base,{chart:{type:'area'},xAxis:{categories:wK},yAxis:{title:{text:'New Tickets'}},plotOptions:{area:{fillOpacity:.12,marker:{radius:5},dataLabels:{enabled:true,style:{fontWeight:'600',color:c.text2}}}},legend:{enabled:false},colors:['#0052CC'],series:[{name:'Weekly',data:wK.map(function(k){return wi[k]})}]}));
+  var di=D.daily_inflow||{};var dK=Object.keys(di).sort().slice(-14);
+  var dL=dK.map(function(k){try{var d=new Date(k);return(d.getMonth()+1)+'/'+d.getDate()}catch(e){return k}});
+  Highcharts.chart('c-daily',Highcharts.merge(base,{chart:{type:'column'},xAxis:{categories:dL},yAxis:{title:{text:'Created'}},plotOptions:{column:{dataLabels:{enabled:true},borderRadius:4}},legend:{enabled:false},colors:['#0052CC'],series:[{name:'Daily',data:dK.map(function(k){return di[k]})}]}));
 }
 
-// ===================== WIP→ASSIGNED TAB =====================
-function renderAction() {
-  if (!comparison) return;
-  document.getElementById('actionEmpty').style.display = 'none';
-  document.getElementById('actionContent').style.display = 'block';
-
-  var list = comparison.wipToAssigned;
-  var kpiHTML = '';
-  kpiHTML += kpi(list.length, 'WIP → Assigned', 'Need closure', 'red');
-
-  // Severity breakdown of these
-  var sevCount = {};
-  for (var i = 0; i < list.length; i++) {
-    var s = list[i].ticket.Severity;
-    sevCount[s] = (sevCount[s] || 0) + 1;
-  }
-  for (var s in sevCount) {
-    kpiHTML += kpi(sevCount[s], 'Sev ' + s, '', s === '3' ? 'red' : s === '4' ? 'yellow' : 'green');
-  }
-
-  // Avg age
-  if (list.length) {
-    var sum = 0;
-    for (var i = 0; i < list.length; i++) sum += parseInt(list[i].ticket.Age) || 0;
-    kpiHTML += kpi((sum / list.length).toFixed(0) + 'd', 'Avg Age', '', 'orange');
-  }
-  document.getElementById('actionKPIs').innerHTML = kpiHTML;
-  document.getElementById('actionCount').textContent = list.length;
-
-  var html = '<thead><tr><th>ID</th><th>Sev</th><th>Age</th><th>Title</th><th>Created</th><th>Change</th></tr></thead><tbody>';
-  for (var i = 0; i < list.length; i++) {
-    var t = list[i].ticket;
-    html += '<tr><td><a href="' + (t.IssueUrl || 'https://t.corp.amazon.com/' + t.ShortId) + '" target="_blank">' + (t.ShortId || t.IssueId) + '</a></td>';
-    html += '<td class="sev' + t.Severity + '">Sev ' + t.Severity + '</td>';
-    html += '<td>' + (t.Age || '?') + 'd</td>';
-    html += '<td>' + truncate(t.Title, 70) + '</td>';
-    html += '<td>' + formatDate(t.CreateDate) + '</td>';
-    html += '<td><span class="change-arrow">WIP → Assigned</span></td></tr>';
-  }
-  if (!list.length) {
-    html += '<tr><td colspan="6" style="text-align:center;color:#4ade80;padding:30px">✅ No WIP → Assigned tickets today! Clean day.</td></tr>';
-  }
-  html += '</tbody>';
-  document.getElementById('actionTable').innerHTML = html;
+function renderWipTab(){
+  var wip=D.wip_count||0,res=D.resolved_wip||0,a2w=D.assigned_to_wip_count||0,avg=D.wip_avg_age||0;var ws=D.wip_severity||{};
+  var kpis=[{l:'WIP Tickets',v:wip,s:'',c:'blue',ic:'fa-wrench'},{l:'WIP Resolved',v:res,s:'Closed today',c:'green',ic:'fa-check'},{l:'Moved to WIP',v:a2w,s:'Assigned \u2192 WIP',c:'orange',ic:'fa-arrow-right'},{l:'Avg WIP Age',v:avg+'d',s:'',c:'red',ic:'fa-hourglass'},{l:'WIP Sev 3',v:ws['3']||0,s:'',c:'red',ic:'fa-bolt'}];
+  document.getElementById('wipKpis').innerHTML=kpis.map(function(k){return '<div class="kpi '+k.c+'"><div class="kpi-lbl"><i class="fa-solid '+k.ic+'"></i> '+k.l+'</div><div class="kpi-val">'+(typeof k.v==='number'?k.v.toLocaleString():k.v)+'</div><div class="kpi-sub">'+k.s+'</div></div>'}).join('');
+  var base=hcBase();var ac=['#36b37e','#00b8d9','#ff991f','#ff5630','#de350b'];var wa=D.wip_ages||{};
+  Highcharts.chart('c-wip-age',Highcharts.merge(base,{chart:{type:'column'},xAxis:{categories:Object.keys(wa)},yAxis:{title:{text:''}},plotOptions:{column:{dataLabels:{enabled:true},borderRadius:4}},legend:{enabled:false},series:[{name:'WIP',data:Object.values(wa).map(function(v,i){return{y:v,color:ac[i]}})}]}));
+  var sevc={'3':'#de350b','4':'#ff991f','5':'#0065ff'};
+  Highcharts.chart('c-wip-sev',Highcharts.merge(base,{chart:{type:'pie'},plotOptions:{pie:{innerSize:'50%',dataLabels:{format:'<b>Sev {point.name}</b>: {point.y}',style:{fontSize:'11px',textOutline:'none'}}}},series:[{data:Object.keys(ws).sort().map(function(k){return{name:k,y:ws[k],color:sevc[k]||'#999'}})}]}));
+  document.getElementById('wipGridCnt').textContent=wip;
+  filterWip();
 }
 
-// ===================== PRIORITY TAB =====================
-function matchPriority() {
-  var text = document.getElementById('priorityInput').value;
-  var ids = text.match(/[A-Z0-9]{5,}/gi) || [];
-  if (!ids.length) {
-    document.getElementById('priorityResults').innerHTML = '<p style="color:#f87171">No valid IDs found. Paste TT IDs like V1234567890</p>';
-    return;
-  }
-  priorityIds = ids;
+function getWipFiltered(){
+  var list=ALL_TICKETS.filter(function(t){return t.status==='Work In Progress'});
+  var sv=document.getElementById('wf-sev').value;
+  var q=(document.getElementById('wf-search').value||'').toLowerCase();
+  if(sv)list=list.filter(function(t){return String(t.severity)===sv});
+  if(q)list=list.filter(function(t){return(t.title+t.id).toLowerCase().indexOf(q)>=0});
+  return list.sort(function(a,b){return b.age-a.age});
+}
+function filterWip(){renderTable(getWipFiltered(),'wip-table',['id','severity','status','title','age','created'])}
 
-  var data = eveningData || morningData;
-  if (!data) {
-    document.getElementById('priorityResults').innerHTML = '<p style="color:#f87171">Upload a CSV dump first</p>';
-    return;
-  }
-
-  var dataMap = {};
-  for (var i = 0; i < data.length; i++) {
-    dataMap[(data[i].IssueId || '').toUpperCase()] = data[i];
-    dataMap[(data[i].ShortId || '').toUpperCase()] = data[i];
-  }
-
-  var matched = [];
-  var notFound = [];
-  var seen = {};
-  for (var i = 0; i < ids.length; i++) {
-    var id = ids[i].toUpperCase();
-    if (seen[id]) continue;
-    seen[id] = true;
-    var ticket = dataMap[id];
-    if (ticket) {
-      matched.push(ticket);
-    } else {
-      notFound.push(ids[i]);
-    }
-  }
-  priorityMatched = matched;
-
-  var stCount = countBy(matched, 'Status');
-  var svCount = countBy(matched, 'Severity');
-
-  var html = '<div class="kpi-row">';
-  html += kpi(ids.length, 'IDs Pasted', '', 'blue');
-  html += kpi(matched.length, 'Found in Queue', '', 'green');
-  html += kpi(notFound.length, 'Not Found', 'Possibly resolved', 'yellow');
-  for (var s in stCount) html += kpi(stCount[s], s, '', s === 'Work In Progress' ? 'blue' : 'yellow');
-  html += '</div>';
-
-  if (notFound.length) {
-    html += '<div style="background:#1a2940;border:1px solid #1e3a5f;border-radius:8px;padding:12px;margin:12px 0">';
-    html += '<div style="font-size:12px;color:#fbbf24;font-weight:600;margin-bottom:4px">⚠️ Not found in current queue (' + notFound.length + '):</div>';
-    html += '<div style="font-size:11px;color:#6b7b8d;word-break:break-all">' + notFound.join(', ') + '</div></div>';
-  }
-
-  html += '<div style="margin-top:12px"><button class="btn" onclick="downloadTable(\'priorityTable\',\'priority_tickets.csv\')">📥 Download Priority List</button></div>';
-  html += '<div class="table-wrap" style="margin-top:8px"><table id="priorityTable"><thead><tr><th>ID</th><th>Status</th><th>Sev</th><th>Age</th><th>Title</th><th>Created</th></tr></thead><tbody>';
-  for (var i = 0; i < matched.length; i++) {
-    var t = matched[i];
-    var stClass = t.Status === 'Work In Progress' ? 'status-wip' : t.Status === 'Assigned' ? 'status-assigned' : 'status-pending';
-    html += '<tr><td><a href="' + (t.IssueUrl || 'https://t.corp.amazon.com/' + t.ShortId) + '" target="_blank">' + (t.ShortId || t.IssueId) + '</a></td>';
-    html += '<td class="' + stClass + '">' + t.Status + '</td>';
-    html += '<td class="sev' + t.Severity + '">Sev ' + t.Severity + '</td>';
-    html += '<td>' + (t.Age || '?') + 'd</td>';
-    html += '<td>' + truncate(t.Title, 70) + '</td>';
-    html += '<td>' + formatDate(t.CreateDate) + '</td></tr>';
-  }
-  html += '</tbody></table></div>';
-  document.getElementById('priorityResults').innerHTML = html;
+function renderActionTab(){
+  var list=(D.w2a_list||[]).map(normalizeTicket);
+  try{document.getElementById('actCnt').textContent=list.length}catch(e){}
+  if(!list.length){document.getElementById('actKpis').innerHTML='<div class="kpi green" style="grid-column:1/-1;text-align:center"><div class="kpi-val">\u2705</div><div class="kpi-sub">No WIP \u2192 Assigned tickets. Clean day!</div></div>';document.getElementById('act-table').innerHTML='';return}
+  var sc={};list.forEach(function(t){var s=String(t.severity);sc[s]=(sc[s]||0)+1});
+  var avgA=0;list.forEach(function(t){avgA+=t.age||0});avgA=list.length?Math.round(avgA/list.length):0;
+  var kpis=[{l:'WIP \u2192 Assigned',v:list.length,s:'Need closure',c:'red',ic:'fa-triangle-exclamation'}];
+  for(var s in sc)kpis.push({l:'Sev '+s,v:sc[s],s:'',c:s==='3'?'red':'blue',ic:'fa-bolt'});
+  kpis.push({l:'Avg Age',v:avgA+'d',s:'',c:'orange',ic:'fa-hourglass'});
+  document.getElementById('actKpis').innerHTML=kpis.map(function(k){return '<div class="kpi '+k.c+'"><div class="kpi-lbl"><i class="fa-solid '+k.ic+'"></i> '+k.l+'</div><div class="kpi-val">'+(typeof k.v==='number'?k.v.toLocaleString():k.v)+'</div><div class="kpi-sub">'+k.s+'</div></div>'}).join('');
+  renderTable(list,'act-table',['id','severity','status','title','age','created']);
 }
 
-function clearPriority() {
-  document.getElementById('priorityInput').value = '';
-  document.getElementById('priorityResults').innerHTML = '';
-  priorityIds = [];
-  priorityMatched = [];
+function renderAllTickets(){
+  if(!ALL_TICKETS.length){document.getElementById('all-table').innerHTML='<div class="empty-st"><i class="fa-solid fa-cloud-arrow-up"></i><p>Upload data in Admin tab or select a date to see full ticket grid.</p></div>';return}
+  var fs=document.getElementById('tf-status');if(fs.options.length<=1){var statuses={};ALL_TICKETS.forEach(function(t){statuses[t.status]=1});Object.keys(statuses).sort().forEach(function(s){var o=document.createElement('option');o.value=s;o.textContent=s;fs.appendChild(o)})}
+  filterAll();
+}
+function filterAll(){
+  var list=ALL_TICKETS.slice();
+  var sv=document.getElementById('tf-status').value,sev=document.getElementById('tf-sev').value,age=document.getElementById('tf-age').value;
+  if(sv)list=list.filter(function(t){return t.status===sv});
+  if(sev)list=list.filter(function(t){return String(t.severity)===sev});
+  if(age==='0-3')list=list.filter(function(t){return t.age<=3});
+  else if(age==='4-7')list=list.filter(function(t){return t.age>=4&&t.age<=7});
+  else if(age==='8-14')list=list.filter(function(t){return t.age>=8&&t.age<=14});
+  else if(age==='15-30')list=list.filter(function(t){return t.age>=15&&t.age<=30});
+  else if(age==='30+')list=list.filter(function(t){return t.age>30});
+  document.getElementById('gridCnt').textContent=list.length;
+  renderTable(list,'all-table',['id','severity','status','title','asin','age','created']);
 }
 
-// ===================== ADMIN / EXPORT =====================
-function exportGitHubJSON() {
-  if (!morningData && !eveningData) {
-    document.getElementById('exportStatus').textContent = 'Upload data first!';
-    return;
-  }
-  var payload = {
-    timestamp: new Date().toLocaleString(),
-    generated: new Date().toISOString(),
-    morning: morningData || [],
-    evening: eveningData || [],
-    priorityIds: priorityIds,
-    morningCount: morningData ? morningData.length : 0,
-    eveningCount: eveningData ? eveningData.length : 0
-  };
-  var blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = 'data.json';
-  a.click();
-  URL.revokeObjectURL(url);
-  document.getElementById('exportStatus').textContent = '✓ Exported! Push to GitHub repo.';
+function loadPriority(){
+  var raw=document.getElementById('priInput').value.trim();if(!raw)return;
+  var ids=raw.match(/[A-Z0-9]{5,}/gi)||[];if(!ids.length)return;
+  PRI_IDS=ids;try{localStorage.setItem('nonblma_pri',raw)}catch(e){}
+  var pool=ALL_TICKETS.length?ALL_TICKETS:(D.w2a_list||[]).map(normalizeTicket);
+  if(!pool.length){document.getElementById('priKpis').innerHTML='<div class="kpi orange" style="grid-column:1/-1"><div class="kpi-sub">Upload data in Admin or select a date first.</div></div>';return}
+  var map={};pool.forEach(function(t){map[t.id.toUpperCase()]=t});
+  var matched=[],unmatched=[],seen={};
+  ids.forEach(function(id){var u=id.toUpperCase();if(seen[u])return;seen[u]=1;var t=map[u];if(t)matched.push(t);else unmatched.push(id)});
+  PRI_MATCHED=matched;try{document.getElementById('pCnt').textContent=matched.length}catch(e){}
+  var pA=0,pW=0,pOld=0;matched.forEach(function(t){if(t.status==='Assigned')pA++;if(t.status==='Work In Progress')pW++;if(t.age>7)pOld++});
+  var kpis=[{l:'Total Priority',v:matched.length,s:unmatched.length+' not found',c:'blue',ic:'fa-fire'},{l:'Untouched',v:pA,s:'Still Assigned',c:'red',ic:'fa-circle-xmark'},{l:'In Progress',v:pW,s:'Being worked',c:'orange',ic:'fa-spinner'},{l:'Aged > 7 Days',v:pOld,s:'Need attention',c:'purple',ic:'fa-hourglass'}];
+  document.getElementById('priKpis').innerHTML=kpis.map(function(k){return '<div class="kpi '+k.c+'"><div class="kpi-lbl"><i class="fa-solid '+k.ic+'"></i> '+k.l+'</div><div class="kpi-val">'+k.v+'</div><div class="kpi-sub">'+k.s+'</div></div>'}).join('');
+  var base=hcBase();var pbs={};matched.forEach(function(t){pbs[t.status]=(pbs[t.status]||0)+1});
+  var scc={'Assigned':'#de350b','Work In Progress':'#ff991f','Pending':'#6554c0'};
+  Highcharts.chart('c-pri-status',Highcharts.merge(base,{chart:{type:'pie'},plotOptions:{pie:{innerSize:'50%',dataLabels:{format:'<b>{point.name}</b>: {point.y}',style:{fontSize:'11px',textOutline:'none'}}}},series:[{data:Object.keys(pbs).map(function(k){return{name:k,y:pbs[k],color:scc[k]||'#999'}})}]}));
+  var pb={'0-3':0,'4-7':0,'8-14':0,'15-30':0,'30+':0};matched.forEach(function(t){if(t.age<=3)pb['0-3']++;else if(t.age<=7)pb['4-7']++;else if(t.age<=14)pb['8-14']++;else if(t.age<=30)pb['15-30']++;else pb['30+']++});
+  var ac=['#36b37e','#00b8d9','#ff991f','#ff5630','#de350b'];
+  Highcharts.chart('c-pri-age',Highcharts.merge(base,{chart:{type:'column'},xAxis:{categories:Object.keys(pb)},yAxis:{title:{text:''}},legend:{enabled:false},plotOptions:{column:{dataLabels:{enabled:true},borderRadius:4}},series:[{data:Object.values(pb).map(function(v,i){return{y:v,color:ac[i]}})}]}));
+  renderTable(matched,'pri-table',['id','severity','status','title','age','created']);
+  document.getElementById('pri-warn').innerHTML=unmatched.length?'<div style="margin-top:8px;padding:10px;background:var(--warning-bg);border-radius:8px;font-size:12px"><b>\u26A0\uFE0F '+unmatched.length+' not found:</b> '+unmatched.join(', ')+'</div>':'';
 }
 
-function downloadReport(type) {
-  var data = [];
-  var name = 'report.csv';
-  if (type === 'full') { data = eveningData || morningData || []; name = 'full_queue.csv'; }
-  else if (type === 'wip') { data = (eveningData || []).filter(function(t) { return t.Status === 'Work In Progress'; }); name = 'wip_tickets.csv'; }
-  else if (type === 'assigned') { data = (eveningData || []).filter(function(t) { return t.Status === 'Assigned'; }); name = 'assigned_tickets.csv'; }
-  else if (type === 'resolved') { data = comparison ? comparison.resolved : []; name = 'resolved_today.csv'; }
-  else if (type === 'new') { data = comparison ? comparison.newTickets : []; name = 'new_today.csv'; }
-  else if (type === 'wip_to_assigned') { data = comparison ? comparison.wipToAssigned.map(function(c) { return c.ticket; }) : []; name = 'wip_to_assigned.csv'; }
-  else if (type === 'priority') { data = priorityMatched || []; name = 'priority_tickets.csv'; }
-  if (!data.length) { alert('No data for this report'); return; }
-  downloadCSV(data, name);
+function renderWeekly(){
+  var wi=D.weekly_inflow||{};var base=hcBase();var c=hcTheme();
+  Highcharts.chart('c-wow',Highcharts.merge(base,{chart:{type:'area'},xAxis:{categories:Object.keys(wi).map(function(k){return 'W/O '+k})},yAxis:{title:{text:'Tickets'}},plotOptions:{area:{fillOpacity:.12,marker:{radius:5},dataLabels:{enabled:true,style:{fontWeight:'600',color:c.text2}}}},legend:{enabled:false},colors:['#0052CC'],series:[{name:'Weekly',data:Object.values(wi)}]}));
+  renderHistory();
+}
+function renderHistory(){
+  var el=document.getElementById('hist-list');if(!el)return;
+  if(!HISTORY.length){el.innerHTML='<div style="padding:15px;text-align:center;color:var(--text3);font-size:12px">No snapshots yet.</div>';return}
+  el.innerHTML=HISTORY.map(function(h){var sp=Object.keys(h.by_status||{}).map(function(k){return k+': '+h.by_status[k]}).join(' \u00B7 ');return '<div class="hist-item"><div><div style="font-weight:600;font-size:13px">'+h.date+'</div><div style="color:var(--text3);font-size:11px">'+sp+'</div></div><div><span style="background:var(--primary-bg);color:var(--primary);padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">'+h.total+'</span></div></div>'}).join('');
 }
 
-function downloadTable(tableId, filename) {
-  var table = document.getElementById(tableId);
-  if (!table) return;
-  var rows = table.querySelectorAll('tr');
-  var csv = '';
-  for (var i = 0; i < rows.length; i++) {
-    var cells = rows[i].querySelectorAll('th, td');
-    var row = [];
-    for (var j = 0; j < cells.length; j++) {
-      var text = cells[j].innerText.replace(/"/g, '""');
-      row.push('"' + text + '"');
-    }
-    csv += row.join(',') + '\n';
-  }
-  var blob = new Blob([csv], { type: 'text/csv' });
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
+function handleUpload(type,input){
+  var file=input.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var rows=parseCSV(e.target.result);
+    if(type==='start'){RAW_START=rows;document.getElementById('uz1').classList.add('loaded');document.getElementById('uz1').querySelector('p').textContent='\u2713 '+rows.length+' tickets'}
+    else{RAW_END=rows;document.getElementById('uz2').classList.add('loaded');document.getElementById('uz2').querySelector('p').textContent='\u2713 '+rows.length+' tickets'}
+    if(RAW_START&&RAW_END)buildFromUploads();
+    else document.getElementById('uploadMsg').textContent='Upload the other dump to complete analysis.';
+  };reader.readAsText(file);
 }
 
-function downloadCSV(data, filename) {
-  if (!data.length) return;
-  var keys = Object.keys(data[0]);
-  var csv = keys.join(',') + '\n';
-  for (var i = 0; i < data.length; i++) {
-    var row = [];
-    for (var j = 0; j < keys.length; j++) {
-      var val = String(data[i][keys[j]] || '').replace(/"/g, '""');
-      row.push('"' + val + '"');
-    }
-    csv += row.join(',') + '\n';
-  }
-  var blob = new Blob([csv], { type: 'text/csv' });
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
+function buildFromUploads(){
+  var m=RAW_START,ev=RAW_END;var mMap={},eMap={};
+  m.forEach(function(r){mMap[r.IssueId]=r});ev.forEach(function(r){eMap[r.IssueId]=r});
+  var resolved=[],newT=[],w2a=[],a2w=[];
+  for(var id in mMap)if(!eMap[id])resolved.push(normalizeTicket(mMap[id]));
+  for(var id in eMap)if(!mMap[id])newT.push(normalizeTicket(eMap[id]));
+  for(var id in eMap){if(mMap[id]&&mMap[id].Status!==eMap[id].Status){if(mMap[id].Status==='Work In Progress'&&eMap[id].Status==='Assigned')w2a.push(normalizeTicket(eMap[id]));if(mMap[id].Status==='Assigned'&&eMap[id].Status==='Work In Progress')a2w.push(normalizeTicket(eMap[id]))}}
+  ALL_TICKETS=ev.map(normalizeTicket);
+  var rWip=0,rAss=0;resolved.forEach(function(t){if(t.status==='Work In Progress')rWip++;else if(t.status==='Assigned')rAss++});
+  var cnt=function(arr,k){var m={};arr.forEach(function(t){var v=String(t[k]||'?');m[v]=(m[v]||0)+1});return m};
+  var ageBuckets=function(arr){var b={'0-3d':0,'4-7d':0,'8-14d':0,'15-30d':0,'30+d':0};arr.forEach(function(t){var a=t.age;if(a<=3)b['0-3d']++;else if(a<=7)b['4-7d']++;else if(a<=14)b['8-14d']++;else if(a<=30)b['15-30d']++;else b['30+d']++});return b};
+  var wip=ALL_TICKETS.filter(function(t){return t.status==='Work In Progress'});
+  var wipAvg=0;if(wip.length){var s=0;wip.forEach(function(t){s+=t.age});wipAvg=Math.round(s/wip.length*10)/10}
+  var wkMap={};ALL_TICKETS.forEach(function(t){if(t.created){try{var d=new Date(t.created);var ws=new Date(d);ws.setDate(d.getDate()-d.getDay());var k=(ws.getMonth()+1)+'/'+ws.getDate();wkMap[k]=(wkMap[k]||0)+1}catch(e){}}});
+  var diMap={};ALL_TICKETS.forEach(function(t){if(t.created)diMap[t.created]=(diMap[t.created]||0)+1});
+  var diSorted={};Object.keys(diMap).sort().slice(-14).forEach(function(k){diSorted[k]=diMap[k]});
+
+  D={date:new Date().toISOString().slice(0,10),total:ev.length,morning_total:m.length,resolved:resolved.length,new_count:newT.length,net:ev.length-m.length,
+    resolved_wip:rWip,resolved_assigned:rAss,wip_to_assigned_count:w2a.length,assigned_to_wip_count:a2w.length,
+    by_status:cnt(ALL_TICKETS,'status'),by_severity:cnt(ALL_TICKETS,'severity'),m_status:cnt(m.map(normalizeTicket),'status'),
+    age_buckets:ageBuckets(ALL_TICKETS),weekly_inflow:wkMap,daily_inflow:diSorted,
+    wip_count:wip.length,wip_avg_age:wipAvg,wip_ages:ageBuckets(wip),wip_severity:cnt(wip.map(function(t){return{severity:String(t.severity)}}),'severity'),
+    w2a_count:w2a.length,w2a_list:w2a,tickets:ALL_TICKETS,resolved_list:resolved,new_list:newT,priorityIds:PRI_IDS};
+
+  try{var snap={date:D.date,total:D.total,by_status:D.by_status};HISTORY.unshift(snap);if(HISTORY.length>30)HISTORY=HISTORY.slice(0,30);localStorage.setItem('nonblma_hist',JSON.stringify(HISTORY))}catch(e){}
+  document.getElementById('exportBtn').disabled=false;
+  document.getElementById('uploadMsg').innerHTML='<span style="color:var(--success)">\u2705 Analysis ready! <b>'+ev.length+'</b> tickets loaded.</span>';
+  renderAll();if(document.getElementById('priInput').value.trim())loadPriority();
 }
 
-// ===================== DEMO DATA =====================
-function loadSampleData() {
-  // minimal embedded sample so preview works without CSV
-  alert('Upload your morning & evening CSV dumps to see real data.\n\nMorning = start-of-day SIM-T dump\nEvening = end-of-day SIM-T dump');
+function exportJSON(){
+  if(!D)return;D.priorityIds=PRI_IDS;
+  var out={date:D.date,summary:{total:D.total,morning_total:D.morning_total,resolved:D.resolved,new_count:D.new_count,net:D.net,resolved_wip:D.resolved_wip,resolved_assigned:D.resolved_assigned,wip_to_assigned_count:D.wip_to_assigned_count,assigned_to_wip_count:D.assigned_to_wip_count,e_status:D.by_status,e_severity:D.by_severity,m_status:D.m_status,age_buckets:D.age_buckets,weekly_inflow:D.weekly_inflow,daily_inflow:D.daily_inflow,wip_count:D.wip_count,wip_avg_age:D.wip_avg_age,wip_ages:D.wip_ages,wip_severity:D.wip_severity},tickets:ALL_TICKETS,wip_to_assigned:D.w2a_list,resolved_list:D.resolved_list,new_list:D.new_list,priorityIds:PRI_IDS};
+  var blob=new Blob([JSON.stringify(out)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=D.date+'.json';a.click();
+  document.getElementById('exportMsg').textContent='\u2713 Saved as '+D.date+'.json';
 }
 
-// ===================== UTILITIES =====================
-function switchTab(name) {
-  var tabs = document.querySelectorAll('.tab');
-  var contents = document.querySelectorAll('.tab-content');
-  for (var i = 0; i < tabs.length; i++) tabs[i].className = tabs[i].className.replace(' active', '');
-  for (var i = 0; i < contents.length; i++) contents[i].className = 'tab-content';
-  document.getElementById('tab-' + name).className = 'tab-content active';
-  // Highlight the right tab
-  var tabEls = document.querySelectorAll('.tab');
-  var tabMap = { overview: 0, wip: 1, action: 2, priority: 3, admin: 4 };
-  if (tabMap[name] !== undefined) tabEls[tabMap[name]].className += ' active';
+function normalizeTicket(t){return{id:t.ShortId||t.id||'',url:t.IssueUrl||t.url||'',title:(t.Title||t.title||'').substring(0,120),severity:parseInt(t.Severity||t.severity)||5,status:t.Status||t.status||'Assigned',age:parseInt(t.Age||t.age)||0,asin:t.Asin||t.asin||'',upc:t.UPC||t.upc||'',created:(t.CreateDate||t.created||'').substring(0,10),last_updated:(t.LastUpdatedDate||t.last_updated||'').substring(0,10),assignee:t.AssigneeIdentity||t.assignee||''}}
+
+function renderTable(rows,targetId,cols){
+  var labels={id:'Ticket ID',severity:'Sev',status:'Status',title:'Title',asin:'ASIN',age:'Age',created:'Created'};
+  var h='<table class="dt"><thead><tr>';cols.forEach(function(c){h+='<th>'+labels[c]+'</th>'});h+='</tr></thead><tbody>';
+  rows.forEach(function(t){h+='<tr>';cols.forEach(function(c){var v=t[c]||'';if(c==='id')h+='<td><a href="'+(t.url||'https://t.corp.amazon.com/'+v)+'" target="_blank">'+v+'</a></td>';else if(c==='severity')h+='<td><span class="sev'+v+'">Sev '+v+'</span></td>';else if(c==='status')h+='<td><span class="'+(v==='Assigned'?'st-a':v==='Work In Progress'?'st-w':'st-p')+'">'+v+'</span></td>';else if(c==='title')h+='<td title="'+v+'">'+v.substring(0,75)+'</td>';else if(c==='age')h+='<td>'+v+'d</td>';else h+='<td>'+v+'</td>'});h+='</tr>'});
+  if(!rows.length)h+='<tr><td colspan="'+cols.length+'" style="text-align:center;padding:30px;color:var(--text3)">No tickets</td></tr>';
+  h+='</tbody></table>';document.getElementById(targetId).innerHTML=h;
 }
 
-function countBy(arr, key) {
-  var map = {};
-  for (var i = 0; i < arr.length; i++) {
-    var val = arr[i][key] || 'Unknown';
-    map[val] = (map[val] || 0) + 1;
-  }
-  return map;
-}
+function parseCSV(text){var lines=text.split('\n');var hdr=csvLine(lines[0]);var rows=[];for(var i=1;i<lines.length;i++){if(!lines[i].trim())continue;var v=csvLine(lines[i]);var o={};for(var j=0;j<hdr.length;j++)o[hdr[j]]=(v[j]||'').trim();rows.push(o)}return rows}
+function csvLine(l){var r=[],c='',q=false;for(var i=0;i<l.length;i++){var ch=l[i];if(q){if(ch==='"'){if(i+1<l.length&&l[i+1]==='"'){c+='"';i++}else q=false}else c+=ch}else{if(ch==='"')q=true;else if(ch===','){r.push(c);c=''}else c+=ch}}r.push(c);return r}
 
-function kpi(value, label, sub, colorClass) {
-  return '<div class="kpi"><div class="kpi-value ' + (colorClass || '') + '">' + value + '</div><div class="kpi-label">' + label + '</div>' + (sub ? '<div class="kpi-sub">' + sub + '</div>' : '') + '</div>';
-}
+function dlCSVData(data,name){if(!data||!data.length){alert('No data');return}var k=Object.keys(data[0]);var csv=k.join(',')+'\n';data.forEach(function(r){var row=[];k.forEach(function(c){row.push('"'+String(r[c]||'').replace(/"/g,'""')+'"')});csv+=row.join(',')+'\n'});var b=new Blob([csv],{type:'text/csv'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click()}
+function dlAll(){dlCSVData(ALL_TICKETS,'full_queue.csv')}
+function dlWip(){dlCSVData(getWipFiltered(),'wip_tickets.csv')}
+function dlAssigned(){dlCSVData(ALL_TICKETS.filter(function(t){return t.status==='Assigned'}),'assigned.csv')}
+function dlResolved(){dlCSVData(D.resolved_list||[],'resolved.csv')}
+function dlNew(){dlCSVData(D.new_list||[],'new_today.csv')}
+function dlW2A(){dlCSVData(D.w2a_list||[],'wip_to_assigned.csv')}
+function dlPri(){dlCSVData(PRI_MATCHED,'priority.csv')}
 
-function truncate(str, len) {
-  if (!str) return '';
-  return str.length > len ? str.substring(0, len) + '...' : str;
+function tryAutoLoad(){
+  fetch('./data/manifest.json').then(function(r){if(!r.ok)throw '';return r.json()}).then(function(dates){
+    var sel=document.getElementById('dateSelect');dates.sort().reverse();
+    dates.forEach(function(d){var o=document.createElement('option');o.value=d;o.textContent=fmtDateLabel(d);sel.appendChild(o)});
+    if(dates.length){sel.value=dates[0];loadDate(dates[0])}
+  }).catch(function(){});
 }
-
-function formatDate(d) {
-  if (!d) return '';
-  var dt = new Date(d);
-  return (dt.getMonth() + 1) + '/' + dt.getDate();
+function loadDate(ds){
+  if(!ds)return;
+  fetch('./data/'+ds+'.json').then(function(r){if(!r.ok)throw '';return r.json()}).then(function(data){
+    if(data.summary){var S=data.summary;D={date:data.date,total:S.total,morning_total:S.morning_total,resolved:S.resolved,new_count:S.new_count,net:S.net,resolved_wip:S.resolved_wip,resolved_assigned:S.resolved_assigned,wip_to_assigned_count:S.wip_to_assigned_count,assigned_to_wip_count:S.assigned_to_wip_count,by_status:S.e_status,by_severity:S.e_severity,m_status:S.m_status,age_buckets:S.age_buckets,weekly_inflow:S.weekly_inflow,daily_inflow:S.daily_inflow||{},wip_count:S.wip_count,wip_avg_age:S.wip_avg_age,wip_ages:S.wip_ages,wip_severity:S.wip_severity,w2a_count:S.wip_to_assigned_count,w2a_list:(data.wip_to_assigned||[]),resolved_list:data.resolved_list||[],new_list:data.new_list||[],priorityIds:data.priorityIds||[]}}else D=data;
+    ALL_TICKETS=(data.tickets||[]).map(normalizeTicket);
+    D.w2a_list=(D.w2a_list||data.wip_to_assigned||[]).map(normalizeTicket);
+    D.resolved_list=(D.resolved_list||data.resolved_list||[]).map(normalizeTicket);
+    D.new_list=(D.new_list||data.new_list||[]).map(normalizeTicket);
+    if(data.priorityIds&&data.priorityIds.length){PRI_IDS=data.priorityIds;document.getElementById('priInput').value=PRI_IDS.join('\n')}
+    renderAll();if(PRI_IDS.length)loadPriority();
+  }).catch(function(){});
 }
+function fmtDateLabel(d){try{var p=d.split('-');var dt=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));var days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];var mos=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return days[dt.getDay()]+', '+mos[dt.getMonth()]+' '+dt.getDate()}catch(e){return d}}
 
-// ===================== INIT =====================
+// INIT
+initTheme();
+buildUI();
+D=EMBEDDED;D.w2a_list=D.w2a_list||[];D.resolved_list=[];D.new_list=[];D.priorityIds=[];
+renderAll();
 tryAutoLoad();
+try{var savedPri=localStorage.getItem('nonblma_pri');if(savedPri)document.getElementById('priInput').value=savedPri}catch(e){}
 </script>
 
 
